@@ -8,14 +8,14 @@ use objc2_foundation::{NSPoint, NSRect, NSSize};
 pub fn create_window(size: Size, mtm: MainThreadMarker) -> Retained<NSWindow> {
     let rect = NSRect::new(NSPoint::ZERO, NSSize { width: size.width, height: size.height });
 
-    // SAFETY: This is safe because of the setReleasedWhenClosed(false) below
     let ns_window = unsafe {
         NSWindow::initWithContentRect_styleMask_backing_defer(
             NSWindow::alloc(mtm),
             rect,
             NSWindowStyleMask::Titled
                 | NSWindowStyleMask::Closable
-                | NSWindowStyleMask::Miniaturizable,
+                | NSWindowStyleMask::Miniaturizable
+                | NSWindowStyleMask::Resizable,
             NSBackingStoreType::Buffered,
             false,
         )
