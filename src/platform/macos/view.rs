@@ -282,12 +282,18 @@ impl ViewImpl for BaseviewView {
         }
     }
 
-    fn set_frame_size(this: ViewRef<Self>, _size: objc2_foundation::NSSize) {
+    fn set_frame_size(this: ViewRef<Self>, size: objc2_foundation::NSSize) {
         let new_window_info = Self::fetch_view_size(this.view);
         let window_info = this.state.window_info.get();
 
         if new_window_info.physical_size() != window_info.physical_size() {
             this.state.window_info.set(new_window_info);
+
+            #[cfg(feature = "opengl")]
+            if let Some(gl_context) = this.gl_context.get() {
+                gl_context.inner.resize(size);
+            }
+
             Self::trigger_deferrable_event(
                 this,
                 Event::Window(WindowEvent::Resized(new_window_info)),

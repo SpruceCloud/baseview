@@ -3,7 +3,7 @@
 use crate::gl::{GlConfig, GlError, Profile};
 use objc2::rc::Retained;
 use objc2::AllocAnyThread;
-use objc2::{MainThreadMarker, MainThreadOnly};
+use objc2::{msg_send, MainThreadMarker, MainThreadOnly};
 use objc2_app_kit::{
     NSOpenGLContext, NSOpenGLContextParameter, NSOpenGLPFAAccelerated, NSOpenGLPFAAlphaSize,
     NSOpenGLPFAColorSize, NSOpenGLPFADepthSize, NSOpenGLPFADoubleBuffer, NSOpenGLPFAMultisample,
@@ -81,6 +81,7 @@ impl GlContext {
 
         view.display();
         parent_view.addSubview(&view);
+        let () = unsafe { msg_send![&view, setAutoresizingMask: 18usize] };
 
         let context = view.openGLContext().ok_or(GlError::CreationFailed(()))?;
 
