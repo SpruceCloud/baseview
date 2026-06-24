@@ -134,6 +134,7 @@ pub trait ViewImpl: Sized {
     ) -> bool;
     fn dragging_exited(this: ViewRef<Self>, sender: Option<&ProtocolObject<dyn NSDraggingInfo>>);
     fn handle_notification(this: ViewRef<Self>, notification: &NSNotification);
+    fn set_frame_size(this: ViewRef<Self>, size: objc2_foundation::NSSize);
 
     fn mouse_down(this: ViewRef<Self>, event: &NSEvent);
     fn mouse_up(this: ViewRef<Self>, event: &NSEvent);

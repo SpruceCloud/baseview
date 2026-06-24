@@ -84,6 +84,10 @@ pub unsafe fn create_view_class<V: ViewImpl>() -> &'static AnyClass {
             sel!(viewDidChangeBackingProperties:),
             view_did_change_backing_properties::<V> as extern "C-unwind" fn(_, _, _) -> _,
         );
+        class.add_method(
+            sel!(setFrameSize:),
+            set_frame_size::<V> as extern "C-unwind" fn(_, _, objc2_foundation::NSSize),
+        );
 
         class.add_method(
             sel!(draggingEntered:),
@@ -283,4 +287,11 @@ extern "C-unwind" fn other_mouse_down<V: ViewImpl>(this: &View<V>, _sel: Sel, ev
 
 extern "C-unwind" fn other_mouse_up<V: ViewImpl>(this: &View<V>, _sel: Sel, event: &NSEvent) {
     V::other_mouse_up(this.inner_ref(), event);
+}
+
+extern "C-unwind" fn set_frame_size<V: ViewImpl>(this: &View<V>, _sel: Sel, size: objc2_foundation::NSSize) {
+    if let Some(superclass) = this.class().superclass() {
+        let () = unsafe { msg_send![super(this, superclass), setFrameSize: size] };
+    }
+    V::set_frame_size(this.inner_ref(), size);
 }

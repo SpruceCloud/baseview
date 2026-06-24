@@ -278,6 +278,19 @@ impl ViewImpl for BaseviewView {
         }
     }
 
+    fn set_frame_size(this: ViewRef<Self>, _size: objc2_foundation::NSSize) {
+        let new_window_info = Self::fetch_view_size(this.view);
+        let window_info = this.state.window_info.get();
+
+        if new_window_info.physical_size() != window_info.physical_size() {
+            this.state.window_info.set(new_window_info);
+            Self::trigger_deferrable_event(
+                this,
+                Event::Window(WindowEvent::Resized(new_window_info)),
+            );
+        }
+    }
+
     /// `hitTest:` override that collapses hits on baseview's internal
     /// OpenGL render subview to this NSView.
     ///
