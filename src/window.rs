@@ -6,7 +6,7 @@ use raw_window_handle::{
 
 use crate::event::{Event, EventStatus};
 use crate::window_open_options::WindowOpenOptions;
-use crate::{platform, MouseCursor, Size};
+use crate::{platform, MouseCursor, Point, Size};
 
 pub struct WindowHandle {
     window_handle: platform::WindowHandle,
@@ -89,6 +89,20 @@ impl<'a> Window<'a> {
     /// automatically be accounted for.
     pub fn resize(&mut self, size: Size) {
         self.window.resize(size);
+    }
+
+    /// Returns the window's client area top-left position in screen coordinates (logical pixels).
+    ///
+    /// This can be combined with window-relative mouse positions from [`MouseEvent`] variants
+    /// to compute screen-absolute cursor positions:
+    /// ```ignore
+    /// let screen_pos = Point::new(
+    ///     window.window_position().x + event_position.x,
+    ///     window.window_position().y + event_position.y,
+    /// );
+    /// ```
+    pub fn window_position(&self) -> Point {
+        self.window.window_position()
     }
 
     pub fn set_mouse_cursor(&mut self, cursor: MouseCursor) {

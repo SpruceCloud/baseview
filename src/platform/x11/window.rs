@@ -22,8 +22,8 @@ use x11rb::CURRENT_TIME;
 
 use super::XcbConnection;
 use crate::{
-    Event, MouseCursor, Size, WindowEvent, WindowHandler, WindowInfo, WindowOpenOptions,
-    WindowScalePolicy,
+    Event, MouseCursor, PhyPoint, Point, Size, WindowEvent, WindowHandler, WindowInfo,
+    WindowOpenOptions, WindowScalePolicy,
 };
 
 #[cfg(feature = "opengl")]
@@ -313,6 +313,24 @@ impl<'a> Window<'a> {
         EventLoop::new(inner, handler, parent_handle, xkb_state).run()?;
 
         Ok(())
+    }
+
+    /// Returns the window's top-left position in screen coordinates (logical pixels).
+    /// The coordinate system has the origin at the top-left of the root window,
+    /// with Y increasing downward.
+    pub fn window_position(&self) -> Point {
+        let root = self.inner.xcb_connection.screen().root;
+
+        let reply =
+            self.inner.xcb_connection.conn.translate_coordinates(self.inner.window_id, root, 0, 0);
+
+        match reply.and_then(|cookie| cookie.reply()) {
+            Ok(reply) => {
+                let physical_pos = PhyPoint::new(reply.dst_x as i32, reply.dst_y as i32);
+                physical_pos.to_logical(&self.inner.window_info)
+            }
+            Err(_) => Point::new(0.0, 0.0),
+        }
     }
 
     pub fn set_mouse_cursor(&self, mouse_cursor: MouseCursor) {

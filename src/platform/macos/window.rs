@@ -14,7 +14,7 @@ use raw_window_handle::{
 };
 
 use super::cursor::Cursor;
-use crate::{MouseCursor, Size, WindowHandler, WindowInfo, WindowOpenOptions};
+use crate::{MouseCursor, Point, Size, WindowHandler, WindowInfo, WindowOpenOptions};
 
 #[cfg(feature = "opengl")]
 use crate::gl::GlContext;
@@ -152,6 +152,32 @@ impl<'a> Window<'a> {
         }
 
         BaseviewView::resize(self.view.inner_ref(), size);
+    }
+
+    /// Returns the window's top-left position in screen coordinates (logical pixels).
+    /// The coordinate system has the origin at the top-left of the primary screen,
+    /// with Y increasing downward.
+    pub fn window_position(&self) -> Point {
+        let Some(window) = self.view.window() else {
+            return Point::new(0.0, 0.0);
+        };
+
+        let frame = window.frame();
+        let content_rect = window.contentRectForFrameRect(frame);
+
+        let screen_height = window
+            .screen()
+            .or_else(|| {
+                let mtm = MainThreadMarker::new()?;
+                objc2_app_kit::NSScreen::mainScreen(mtm)
+            })
+            .map(|s| s.frame().size.height)
+            .unwrap_or(content_rect.origin.y + content_rect.size.height);
+
+        Point {
+            x: content_rect.origin.x,
+            y: screen_height - content_rect.origin.y - content_rect.size.height,
+        }
     }
 
     pub fn set_mouse_cursor(&self, cursor: MouseCursor) {

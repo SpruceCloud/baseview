@@ -28,8 +28,9 @@ const BV_WINDOW_MUST_CLOSE: u32 = WM_USER + 1;
 
 use super::*;
 use crate::{
-    Event, EventStatus, MouseButton, MouseCursor, MouseEvent, PhyPoint, PhySize, ScrollDelta, Size,
-    WindowEvent, WindowHandler, WindowInfo, WindowOpenOptions, WindowScalePolicy,
+    Event, EventStatus, MouseButton, MouseCursor, MouseEvent, PhyPoint, PhySize, Point,
+    ScrollDelta, Size, WindowEvent, WindowHandler, WindowInfo, WindowOpenOptions,
+    WindowScalePolicy,
 };
 
 use super::drop_target::DropTarget;
@@ -700,6 +701,20 @@ impl Window<'_> {
         // event has been handled
         let task = WindowTask::Resize(size);
         self.state.deferred_tasks.borrow_mut().push_back(task);
+    }
+
+    /// Returns the window's client area top-left position in screen coordinates (logical pixels).
+    /// The coordinate system has the origin at the top-left of the primary monitor,
+    /// with Y increasing downward.
+    pub fn window_position(&self) -> Point {
+        use windows_sys::Win32::Foundation::POINT as WINPOINT;
+        use windows_sys::Win32::Graphics::Gdi::ClientToScreen;
+
+        let mut point = WINPOINT { x: 0, y: 0 };
+        unsafe { ClientToScreen(self.state.hwnd, &mut point) };
+
+        let phy_point = PhyPoint::new(point.x, point.y);
+        phy_point.to_logical(&self.state.window_info())
     }
 
     pub fn set_mouse_cursor(&mut self, mouse_cursor: MouseCursor) {
