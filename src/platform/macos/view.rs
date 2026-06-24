@@ -74,6 +74,10 @@ impl BaseviewView {
                 ViewParentingType::Parented { parent_view } => {
                     let parent_view = parent_view.load().unwrap();
                     parent_view.addSubview(view.view);
+
+                    // Set autoresizing mask so the child view resizes with its parent.
+                    // NSViewWidthSizable (2) | NSViewHeightSizable (16) = 18.
+                    let () = unsafe { msg_send![view.view, setAutoresizingMask: 18usize] };
                 }
                 ViewParentingType::Windowed { owned_window, .. } => {
                     let owned_window = owned_window.load().unwrap();
