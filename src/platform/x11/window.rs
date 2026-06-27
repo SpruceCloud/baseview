@@ -321,15 +321,19 @@ impl<'a> Window<'a> {
     pub fn window_position(&self) -> Point {
         let root = self.inner.xcb_connection.screen().root;
 
-        let reply =
-            self.inner.xcb_connection.conn.translate_coordinates(self.inner.window_id, root, 0, 0);
+        let reply = self.inner.xcb_connection.conn.translate_coordinates(self.inner.window_id, root, 0, 0);
 
-        match reply.and_then(|cookie| cookie.reply()) {
-            Ok(reply) => {
+        let reply = match reply {
+            Ok(cookie) => cookie.reply().ok(),
+            Err(_) => None,
+        };
+
+        match reply {
+            Some(reply) => {
                 let physical_pos = PhyPoint::new(reply.dst_x as i32, reply.dst_y as i32);
                 physical_pos.to_logical(&self.inner.window_info)
             }
-            Err(_) => Point::new(0.0, 0.0),
+            None => Point::new(0.0, 0.0),
         }
     }
 
